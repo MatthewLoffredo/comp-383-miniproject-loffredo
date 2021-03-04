@@ -26,8 +26,9 @@ This script must have the following software installed in the path:
 *  *-t*,*--test:* Use test data to run this pipeline. Will execute in <5 minutes.
 
 ### Running the pipeline ###
+Run the following in the directory you'd like to clone the repository in:
 ```shell
-https://github.com/MatthewLoffredo/comp-383-miniproject-loffredo.git
+git clone https://github.com/MatthewLoffredo/comp-383-miniproject-loffredo.git
 ```
 
 This will download the repository. To run the pipeline with test data, use the command:
@@ -43,5 +44,5 @@ $ python3 HCMV.py
 ```
 
 ### Output ###
-After running the script, all files and subdirectories in the pipeline will be automatically written to a directory called `miniproject_Matt_Loffredo`. The desired pipeline output will be stored in  `miniProject.log`.
+After running the script, all files and subdirectories in the pipeline will be automatically written to a directory called `miniproject_Matt_Loffredo`. The desired pipeline output will be stored in that directory, in a file named `miniProject.log`.
     
