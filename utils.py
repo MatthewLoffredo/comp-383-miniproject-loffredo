@@ -35,17 +35,13 @@ def bowtie_align(idx, input, out, use_test):
     
   input_exists = os.path.isfile(r1) and os.path.isfile(r2)
   index_exists = os.path.isfile(idx+".1.bt2")
-  # if no mapped fastq file exists, map input to index
-  #if not os.path.isfile(out+".mapped.1.fastq"):
+  # map input to index
   print("Aligning "+input+" to "+idx+" with Bowtie2")
   if input_exists and index_exists:
-    bowtie_command = "bowtie2 --al-conc "+out+".mapped.fastq -x "+idx+" -1 "+r1+" -2 "+r2+" -S "+out; print(bowtie_command)
-  elif index_exists: print("Error: could not locate paired FASTQ files: "+r1+","+r2); return False
-  elif input_exists: print("Error: could not locate index file: "+idx); return False
-  else: print("Error: could not locate any files provided."); return False
+    bowtie_command = "bowtie2 --al-conc "+out+".mapped.fastq -x "+idx+" -1 "+r1+" -2 "+r2+" -S "+out
+    print(bowtie_command)
   os.system(bowtie_command)
   print("Done!")
-  #else: print(input+" has already been mapped to "+idx+" with Bowtie2. Skipping!")
   
   # compute # of read pairs before and after mapping
   before = str(line_count(r1))
@@ -78,7 +74,7 @@ def line_count(fi):
 
 # filters for contigs with lengths greater than 1000
 def filter_contigs(assembly, n):
-  print("## Filtering contigs in "+assembly+" by size "+str(n))
+  print("Filtering contigs in "+assembly+" by size "+str(n))
   in_path = assembly+"/contigs.fasta"
   outfile = open("contigs."+str(n)+".fasta", "w+")
   num_contigs, size = 0,0
@@ -96,7 +92,7 @@ def filter_contigs(assembly, n):
 
 # gets longest contig from bowtie assembly
 def get_longest_contig(assembly):
-  print("## Retreiving longest contig in "+assembly)
+  print("Retreiving longest contig in "+assembly)
   in_path = assembly+"/contigs.fasta"
   outfile = open("longest_contig.fasta", "w+")
   size = 0

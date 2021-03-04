@@ -31,35 +31,26 @@ sample_names = ["SRR5660030", "SRR5660033", "SRR5660044", "SRR5660045"]
 
 # Get reads from sra numbers if not using test data
 if not args.test:
-  os.system("cp ../getReads.sh getReads.sh")
-  os.system('sh getReads.sh')
+  # only pull the reads if not already pulled
+  if not os.path.exists('SRR5660030_1.fastq'):
+    print("Downloading dataset...")
+    os.system("cp ../getReads.sh getReads.sh")
+    os.system('sh getReads.sh')
 else:
   # Create subset of reads if not already created
-  if not os.path.exists('SRR5660030._1.sub.fastq'):
+  if not os.path.exists('SRR5660030_1.sub.fastq'):
+    print("Copying test dataset...")
     for sample in sample_names:
       os.system("cp ../%s_1.sub.fastq %s_1.sub.fastq" % (sample, sample))
       os.system("cp ../%s_2.sub.fastq %s_2.sub.fastq" % (sample, sample))
-      #os.system('head -n 10000 ../%s_1.fastq > %s.sub_1.fastq' % (sample, sample))
-      #os.system('head -n 10000 ../%s_2.fastq > %s.sub_2.fastq' % (sample, sample))
-
-"""    
-os.system('head -n 10000 ../SRR5660030_1.fastq > SRR5660030_1.sub.fastq')
-os.system('head -n 10000 ../SRR5660030_2.fastq > SRR5660030_2.sub.fastq')
-os.system('head -n 10000 ../SRR5660033_1.fastq > SRR5660033_1.sub.fastq')
-os.system('head -n 10000 ../SRR5660033_2.fastq > SRR5660033_2.sub.fastq')
-os.system('head -n 10000 ../SRR5660044_1.fastq > SRR5660044_1.sub.fastq')
-os.system('head -n 10000 ../SRR5660044_2.fastq > SRR5660044_2.sub.fastq')
-os.system('head -n 10000 ../SRR5660045_1.fastq > SRR5660045_1.sub.fastq')
-os.system('head -n 10000 ../SRR5660045_2.fastq > SRR5660045_2.sub.fastq')
-"""
 
 ######## Create ref genome from cds #########
 # retrieve ref genome cds
 Entrez.email = "mloffredo@luc.edu"
 handle = Entrez.efetch(db="nucleotide", id="EF999921", rettype="gb")
 record = SeqIO.read(handle, "genbank")
-#record.features = [f for f in record.features if f.type == "CDS"]
 cds_num = 0
+# write all cds to file
 with open("HCMV.fa", "w") as ref_cds:
   for feature in record.features:
     if feature.type == "CDS":
@@ -107,9 +98,6 @@ info_table.close()
 os.system("cp ../sleuth_script.R sleuth_script.R")
 os.system("Rscript ./sleuth_script.R")
 
-#quant_cmd = "time kallisto quant -i index.idx -b 30 -t 2 -o kallisto_output/"
-#os.system(quant_cmd + "SRR5660030.1 SRR5660030_1.sub.fastq SRR5660030_2.sub.fastq")
-
 ######## Bowtie Mapping #########
 # Retreive HCMV Genome
 handle = Entrez.efetch(db="nucleotide", id="EF999921", rettype="fasta")
@@ -142,17 +130,17 @@ for sample in aligned_samples:
 
 # run assembly
 assembly_name = "HCMV_assembly"
-# output_exists = os.path.isdir(assembly_name)
-# if not output_exists:
-os.system("mkdir "+assembly_name)
-spades_command = "spades -k 55,77,99,127 -t 2 --only-assembler "+spade_inputs+"-o "+assembly_name+"/"
-print(spades_command)
-os.system(spades_command)
-# Open log file and write to it
-log = open("miniProject.log", "a+")
-log.write(spades_command+"\n")
-log.close()
-# else: print("Files have already been assembled: "+str(aligned_samples))
+output_exists = os.path.isdir(assembly_name)
+if not output_exists:
+  os.system("mkdir "+assembly_name)
+  spades_command = "spades -k 55,77,99,127 -t 2 --only-assembler "+spade_inputs+"-o "+assembly_name+"/"
+  print(spades_command)
+  os.system(spades_command)
+  # Open log file and write to it
+  log = open("miniProject.log", "a+")
+  log.write(spades_command+"\n")
+  log.close()
+else: print("Files have already been assembled: "+str(aligned_samples))
 
 ######## Contig Filtering #########
 num_contigs, bp = filter_contigs(assembly_name, 1000)
@@ -186,7 +174,12 @@ rows = parse_blast(output_file, headers)
 log = open("miniProject.log", "a+")
 # writes headers to log
 log.write("\t".join(headers)+"\n")
+# write top 10 hits to log
+count = 0
 for row in rows:
+  count += 1
+  if count > 10:
+    break
   # remove values that have a type of None, which occurs when stitle has commas in it
   values = list(row.values())
   for value in values:

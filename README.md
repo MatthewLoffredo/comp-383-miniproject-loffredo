@@ -45,4 +45,5 @@ $ python3 HCMV.py
 
 ### Output ###
 After running the script, all files and subdirectories in the pipeline will be automatically written to a directory called `miniproject_Matt_Loffredo`. The desired pipeline output will be stored in that directory, in a file named `miniProject.log`.
-    
+
+An output of the pipeline using the full dataset is stored in `miniProject.log` in the main repository directory.
